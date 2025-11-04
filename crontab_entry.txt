@@ -1,19 +1,1 @@
-Crontab entry to run the time synchronization script every 30 minutes.
-
-This should be added to the root user's crontab ('sudo crontab -e')
-
-to ensure the script has permissions to change the system time.
-
-- '*/30 * * * *' means "at minute 0 and 30 past every hour."
-
-- '/usr/bin/python3' is the absolute path to the Python interpreter.
-
-- '/home/student/sync_time.py' is the (assumed) absolute path to your script.
-
-(You MUST update this path to match where you save the script).
-
-- '>> /var/log/time_sync.log 2>&1' appends all output (stdout and stderr)
-
-to a log file, which is essential for debugging.
-
 */30 * * * * /usr/bin/python3 /home/student/sync_time.py >> /var/log/time_sync.log 2>&1
