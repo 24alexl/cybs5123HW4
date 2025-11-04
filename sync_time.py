@@ -24,6 +24,9 @@ import requests
 import datetime
 import subprocess
 import sys
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+import requests # Make sure requests is imported, not just the sub-modules
 
 # Configuration
 API_URL = "https://worldtimeapi.org/api/timezone/Etc/UTC"
@@ -33,9 +36,32 @@ def get_api_time():
     """
     Fetches the current UTC time from worldtimeapi.org.
     Returns the 'unixtime' as an integer, or None if an error occurs.
+    
+    This function now includes a robust retry strategy to handle
+    intermittent network errors like SSLError or ConnectionResetError.
     """
+    
+    session = requests.Session()
+    
+    # Configure the retry strategy
+    # We will retry 5 times, with an increasing delay (backoff)
+    # We will also retry on these specific "status force" error codes
+    retry_strategy = Retry(
+        total=5,
+        backoff_factor=1,  # e.g., 1s, 2s, 4s, 8s, 16s
+        status_forcelist=[429, 500, 502, 503, 504], # Retry on server errors
+        allowed_methods=["GET"]
+    )
+    
+    # Mount the strategy to the session
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
     try:
-        response = requests.get(API_URL, timeout=10)
+        # Use the session to make the request, with a timeout
+        response = session.get(API_URL, timeout=10)
+        
         # Raise an exception for bad status codes (4xx or 5xx)
         response.raise_for_status()
         
@@ -48,7 +74,8 @@ def get_api_time():
             return None
             
     except requests.exceptions.RequestException as e:
-        print(f"Error connecting to time API: {e}", file=sys.stderr)
+        # This will catch all connection errors, timeouts, and retry failures
+        print(f"Error connecting to time API after retries: {e}", file=sys.stderr)
         return None
     except Exception as e:
         print(f"An unexpected error occurred: {e}", file=sys.stderr)
@@ -123,4 +150,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
