@@ -12,9 +12,7 @@ This submission includes all required components for the graduate-level track of
 
 2. `crontab_entry.txt`: The plain-text crontab entry to schedule the script.
 
-3. `analysis_report.md`: The graduate-level analysis comparing the API-based approach to traditional NTP.
-
-4. `README.md`: This file, explaining the setup and testing process.
+3. `README.md`: This file, explaining the setup and testing process.
 
 ## 2. Setup and Installation
 
